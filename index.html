@@ -3,790 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>静态页群聊</title>
+    <title>404 - 页面未找到</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
-        }
-
-        html, body {
-            height: 100%;
-            overflow: hidden;
         }
 
         body {
-            background-color: #f5f5f5;
-        }
-
-        .status-bar {
-            height: 40px;
-            background-color: #f5f5f5;
-            border-bottom: 1px solid #e5e5e5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #888;
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #0f0;
+            overflow: hidden;
             position: relative;
-        }
-
-        .user-nickname {
-            position: absolute;
-            left: 15px;
-            color: #0084ff;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .status-info {
-            display: flex;
-            align-items: center;
-        }
-
-        .history-button {
-            position: absolute;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .online-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #95ec69;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-
-        .chat-container {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: calc(100% - 40px);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background-color: #f7f9fa;
-        }
-
-        .message {
-            display: flex;
-            margin-bottom: 15px;
-            animation: fadeIn 0.3s ease-out;
-            max-width: 80%;
-        }
-
-        .message.left {
-            align-self: flex-start;
-        }
-
-        .message.right {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-            margin-left: auto;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .user-tag {
-            width: 36px;
-            height: 36px;
-            background-color: #0084ff;
-            color: white;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-weight: bold;
-            margin-right: 10px;
-            flex-shrink: 0;
-        }
-
-        .message.right .user-tag {
-            margin-right: 0;
-            margin-left: 10px;
-            background-color: #95ec69;
-        }
-
-        .message-content {
-            max-width: calc(100% - 46px);
-        }
-
-        .message-bubble {
-            background-color: white;
-            padding: 8px 15px;
-            border-radius: 18px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .message.left .message-bubble {
-            border-top-left-radius: 4px;
-        }
-
-        .message.right .message-bubble {
-            background-color: #95ec69;
-            border-top-right-radius: 4px;
-        }
-
-        .message-bubble::before {
-            content: "";
-            position: absolute;
-            top: 10px;
-            width: 12px;
-            height: 12px;
-            background-color: inherit;
-            transform: rotate(45deg);
-        }
-
-        .message.left .message-bubble::before {
-            left: -6px;
-            box-shadow: -3px -3px 3px rgba(0,0,0,0.05);
-        }
-
-        .message.right .message-bubble::before {
-            right: -6px;
-            box-shadow: 3px 3px 3px rgba(0,0,0,0.05);
-        }
-
-        .message-sender {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
-        .message.right .message-sender {
-            text-align: right;
-            color: #333;
-        }
-
-        .message-time {
-            font-size: 10px;
-            color: #aaa;
-            margin-top: 4px;
-            text-align: right;
-        }
-
-        .status-line {
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-            padding: 10px 0;
-        }
-
-        .input-area {
-            padding: 10px;
-            border-top: 1px solid #e5e5e5;
-            display: flex;
             align-items: center;
-            background-color: white;
-            position: relative;
         }
 
-        #emojiButton {
-            width: 40px;
-            height: 40px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #messageInput {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #e5e5e5;
-            border-radius: 20px;
-            outline: none;
-            resize: none;
-            height: 40px;
-            font-size: 14px;
-        }
-
-        #sendButton {
-            margin-left: 10px;
-            padding: 8px 20px;
-            background-color: #0084ff;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .mention {
-            color: #0084ff;
-            font-weight: 500;
-        }
-
-        /* 表情包面板 */
-        .emoji-panel {
-            position: absolute;
-            bottom: 60px;
-            left: 10px;
-            width: calc(100% - 20px);
-            background-color: white;
-            border: 1px solid #e5e5e5;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: none;
-            z-index: 100;
-        }
-
-        .emoji-category {
-            margin-bottom: 10px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .emoji-item {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .emoji-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        /* 历史记录模态框 */
-        .history-modal {
+        #matrix-bg {
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: white;
-            z-index: 200;
-            display: none;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
             flex-direction: column;
-        }
-
-        .history-header {
-            height: 50px;
-            background-color: #0084ff;
-            color: white;
-            display: flex;
             align-items: center;
-            padding: 0 15px;
-            justify-content: space-between;
-        }
-
-        .history-title {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .close-history {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .history-search {
-            padding: 10px;
-            border-bottom: 1px solid #e5e5e5;
-            display: flex;
-        }
-
-        .history-search-input {
-            flex: 1;
-            padding: 8px 15px;
-            border: 1px solid #e5e5e5;
-            border-radius: 20px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .history-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        .history-loading {
-            text-align: center;
-            padding: 15px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .load-more {
-            text-align: center;
-            padding: 10px;
-        }
-
-        .load-more-btn {
-            padding: 6px 15px;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 12px;
-            color: #666;
-        }
-
-        /* 模态框样式 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0,0,0,0.5);
-            display: flex;
             justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal {
-            background-color: white;
-            border-radius: 8px;
-            width: 300px;
+            width: 100%;
+            max-width: 1200px;
             padding: 20px;
+            position: relative;
+            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            margin: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
         }
 
-        .modal-title {
-            font-size: 16px;
-            font-weight: 500;
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
             margin-bottom: 15px;
+            text-shadow: 0 0 10px #0f0;
+            animation: glow 2s infinite alternate;
+            letter-spacing: 0.2em;
+            width: 100%;
+            text-align: center;
         }
 
-        .modal-input {
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #0f0, 0 0 10px #0f0; }
+            to { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0; }
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
-            padding: 10px;
-            border: 1px solid #e5e5e5;
-            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        p {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
             margin-bottom: 15px;
+            text-align: center;
+            max-width: 600px;
         }
 
-        .modal-btn {
+        .game-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
             width: 100%;
-            padding: 10px;
-            background-color: #0084ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
         }
 
-        /* 登录和昵称设置模态框 */
-        #loginModal, #nicknameModal {
-            display: none;
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #tetris {
+            border: 2px solid #0f0;
+            background-color: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            margin: 10px auto;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+        }
+
+        .score, .level {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+            flex: 1;
+            text-align: center;
+            margin: 0 5px;
+        }
+
+        .controls {
+            margin-top: 15px;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            text-align: center;
+            color: #0f0;
+            width: 100%;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #0f0;
+            text-decoration: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+
+        .back-link:hover {
+            background-color: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        @media (max-width: 768px) {
+            .game-wrapper {
+                flex-direction: column;
+            }
+
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .score, .level {
+                width: 100%;
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 登录模态框 -->
-    <div class="modal-overlay" id="loginModal" style="display: flex;">
-        <div class="modal">
-            <div class="modal-title">聊天室登录</div>
-            <input type="password" class="modal-input" id="passwordInput" placeholder="请输入访问口令">
-            <button class="modal-btn" id="loginButton">进入聊天室</button>
-        </div>
-    </div>
+    <canvas id="matrix-bg"></canvas>
 
-    <!-- 昵称设置模态框 -->
-    <div class="modal-overlay" id="nicknameModal">
-        <div class="modal">
-            <div class="modal-title">设置昵称</div>
-            <input type="text" class="modal-input" id="nicknameInput" placeholder="请输入您的昵称">
-            <button class="modal-btn" id="confirmNicknameBtn">确认</button>
-        </div>
-    </div>
+    <div class="container">
+        <h1>404</h1>
+        <p>页面未找到，但你可以玩会儿俄罗斯方块打发时间！</p>
 
-    <!-- 历史记录模态框 -->
-    <div class="history-modal" id="historyModal">
-        <div class="history-header">
-            <div class="history-title">聊天历史记录</div>
-            <button class="close-history" id="closeHistory">×</button>
-        </div>
-        <div class="history-search">
-            <input type="text" class="history-search-input" id="historySearchInput" placeholder="搜索历史消息...">
-        </div>
-        <div class="history-messages" id="historyMessagesContainer"></div>
-        <div class="load-more">
-            <button class="load-more-btn" id="loadMoreBtn">加载更多</button>
-        </div>
-    </div>
+        <div class="game-container">
+            <div class="game-wrapper">
+                <div class="game-area">
+                    <div class="game-info">
+                        <div class="score">得分: <span id="score">0</span></div>
+                        <div class="level">等级: <span id="level">1</span></div>
+                    </div>
 
-    <div class="status-bar">
-        <div class="user-nickname" id="userNickname">点击设置昵称</div>
-        <div class="status-info">
-            <span class="online-indicator"></span>在线 | 最后更新: <span id="lastUpdateTime">05:12:45 AM</span>
-        </div>
-        <button class="history-button" id="historyButton">📜</button>
-    </div>
-    
-    <div class="chat-container">
-        <div class="chat-messages" id="messagesContainer">
-            <!-- 消息会通过JS动态添加 -->
-        </div>
-        
-        <div class="input-area">
-            <button id="emojiButton">😊</button>
-            <textarea id="messageInput" placeholder="输入消息..."></textarea>
-            <button id="sendButton">发送</button>
-            
-            <!-- 表情包面板 -->
-            <div class="emoji-panel" id="emojiPanel">
-                <div class="emoji-category">常用表情</div>
-                <div class="emoji-grid" id="emojiGrid">
-                    <!-- 表情会通过JS动态添加 -->
+                    <canvas id="tetris" width="300" height="600"></canvas>
+
+                    <div class="controls">
+                        <p>← → 移动 | ↑ 旋转 | ↓ 加速下落</p>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <a href="/" class="back-link">返回首页</a>
     </div>
 
     <script>
-        // 配置
-        const ACCESS_PASSWORD = "1234";
-        const DEFAULT_MESSAGE_LIMIT = 50;
-        let currentUser = { nickname: "", deviceId: "" };
-        let messages = [];
-        let lastMessageId = 0; // 记录最后一条消息ID，用于增量拉取
-        let emojiPanelVisible = false;
-        let historyPage = 1;
-        let historySearchQuery = "";
-        
-        // 常用表情列表
-        const emojis = [
-            "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣",
-            "☺️", "😊", "🙂", "🙃", "😉", "😌", "😍", "🥰",
-            "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜",
-            "🤪", "🤨", "🧐", "🤓", "😎", "🥸", "🤩", "🥳",
-            "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "😣",
-            "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠",
-            "😡", "🤬", "😳", "🥵", "🥶", "😱", "😨", "😰",
-            "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶",
-            "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮",
-            "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴"
+        // 黑客帝国代码雨背景
+        const matrixCanvas = document.getElementById('matrix-bg');
+        const matrixCtx = matrixCanvas.getContext('2d');
+
+        function resizeMatrixCanvas() {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+        }
+
+        resizeMatrixCanvas();
+        window.addEventListener('resize', resizeMatrixCanvas);
+
+        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
+        const matrixArray = matrix.split("");
+
+        const fontSize = 10;
+        const columns = matrixCanvas.width / fontSize;
+
+        const drops = [];
+        for(let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+            matrixCtx.fillStyle = '#0F0';
+            matrixCtx.font = fontSize + 'px monospace';
+
+            for(let i = 0; i < drops.length; i++) {
+                const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+                matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if(drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 35);
+
+        // 俄罗斯方块游戏代码
+        const canvas = document.getElementById('tetris');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+
+        const ROW = 20;
+        const COL = 10;
+        const BLOCK_SIZE = 30;
+
+        let score = 0;
+        let level = 1;
+        let gameInterval;
+
+        // 方块形状
+        const SHAPES = [
+            [[1, 1, 1, 1]], // I
+            [[1, 1], [1, 1]], // O
+            [[1, 1, 1], [0, 1, 0]], // T
+            [[1, 1, 1], [1, 0, 0]], // L
+            [[1, 1, 1], [0, 0, 1]], // J
+            [[0, 1, 1], [1, 1, 0]], // S
+            [[1, 1, 0], [0, 1, 1]]  // Z
         ];
-        
-        // DOM元素
-        const loginModal = document.getElementById('loginModal');
-        const nicknameModal = document.getElementById('nicknameModal');
-        const historyModal = document.getElementById('historyModal');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginButton = document.getElementById('loginButton');
-        const nicknameInput = document.getElementById('nicknameInput');
-        const confirmNicknameBtn = document.getElementById('confirmNicknameBtn');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const historyMessagesContainer = document.getElementById('historyMessagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const userNickname = document.getElementById('userNickname');
-        const lastUpdateTime = document.getElementById('lastUpdateTime');
-        const emojiButton = document.getElementById('emojiButton');
-        const emojiPanel = document.getElementById('emojiPanel');
-        const emojiGrid = document.getElementById('emojiGrid');
-        const historyButton = document.getElementById('historyButton');
-        const closeHistory = document.getElementById('closeHistory');
-        const historySearchInput = document.getElementById('historySearchInput');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        
-        // 初始化
-        window.addEventListener('DOMContentLoaded', () => {
-            generateDeviceId();
-            checkLoginStatus();
-            setupEventListeners();
-            renderEmojiPanel();
-            updateLastUpdateTime();
+
+        const COLORS = ['#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
+
+        let board = Array(ROW).fill().map(() => Array(COL).fill(0));
+        let currentPiece = null;
+        let currentX = 0;
+        let currentY = 0;
+        let currentColor = 0;
+
+        // 创建新方块
+        function newPiece() {
+            const id = Math.floor(Math.random() * SHAPES.length);
+            currentPiece = SHAPES[id];
+            currentX = Math.floor((COL - currentPiece[0].length) / 2);
+            currentY = 0;
+            currentColor = id;
+
+            // 游戏结束检查
+            if (collision()) {
+                gameOver();
+            }
+        }
+
+        // 碰撞检测
+        function collision() {
+            for (let y = 0; y < currentPiece.length; y++) {
+                for (let x = 0; x < currentPiece[y].length; x++) {
+                    if (currentPiece[y][x]) {
+                        const boardX = currentX + x;
+                        const boardY = currentY + y;
+
+                        if (boardX < 0 || boardX >= COL || boardY >= ROW) {
+                            return true;
+                        }
+
+                        if (boardY >= 0 && board[boardY][boardX]) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        // 旋转方块
+        function rotate() {
+            const rotated = currentPiece[0].map((_, i) =>
+                currentPiece.map(row => row[i]).reverse()
+            );
+
+            const previousPiece = currentPiece;
+            currentPiece = rotated;
+
+            if (collision()) {
+                currentPiece = previousPiece;
+            }
+        }
+
+        // 固定方块到游戏板
+        function merge() {
+            for (let y = 0; y < currentPiece.length; y++) {
+                for (let x = 0; x < currentPiece[y].length; x++) {
+                    if (currentPiece[y][x]) {
+                        if (currentY + y >= 0) {
+                            board[currentY + y][currentX + x] = currentColor + 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 清除完整的行
+        function clearLines() {
+            let linesCleared = 0;
+
+            for (let y = ROW - 1; y >= 0; y--) {
+                if (board[y].every(cell => cell !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(COL).fill(0));
+                    linesCleared++;
+                    y++;
+                }
+            }
+
+            if (linesCleared > 0) {
+                score += linesCleared * 100 * level;
+                level = Math.floor(score / 1000) + 1;
+                scoreElement.textContent = score;
+                levelElement.textContent = level;
+
+                // 重新设置游戏速度
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameLoop, 1000 / level);
+            }
+        }
+
+        // 绘制方块
+        function drawBlock(x, y, color) {
+            ctx.fillStyle = COLORS[color];
+            ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+            ctx.strokeStyle = '#0f0';
+            ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+
+            // 添加内部高光效果
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(x * BLOCK_SIZE + 2, y * BLOCK_SIZE + 2, BLOCK_SIZE - 4, 4);
+            ctx.fillRect(x * BLOCK_SIZE + 2, y * BLOCK_SIZE + 2, 4, BLOCK_SIZE - 4);
+        }
+
+        // 绘制游戏板
+        function draw() {
+            // 清除画布
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制已固定的方块
+            for (let y = 0; y < ROW; y++) {
+                for (let x = 0; x < COL; x++) {
+                    if (board[y][x]) {
+                        drawBlock(x, y, board[y][x] - 1);
+                    }
+                }
+            }
+
+            // 绘制当前方块
+            if (currentPiece) {
+                for (let y = 0; y < currentPiece.length; y++) {
+                    for (let x = 0; x < currentPiece[y].length; x++) {
+                        if (currentPiece[y][x]) {
+                            drawBlock(currentX + x, currentY + y, currentColor);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 游戏结束
+        function gameOver() {
+            clearInterval(gameInterval);
+            const finalScore = `游戏结束！得分: ${score}`;
+
+            // 创建自定义对话框
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '50%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translate(-50%, -50%)';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            modal.style.border = '2px solid #0f0';
+            modal.style.padding = '20px';
+            modal.style.borderRadius = '10px';
+            modal.style.textAlign = 'center';
+            modal.style.zIndex = '1000';
+            modal.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.5)';
+            modal.style.maxWidth = '90%';
+            modal.style.width = '300px';
+
+            const message = document.createElement('p');
+            message.textContent = finalScore;
+            message.style.color = '#0f0';
+            message.style.fontSize = 'clamp(1.2rem, 4vw, 1.5rem)';
+            message.style.marginBottom = '20px';
+
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = '重新开始';
+            restartBtn.style.backgroundColor = 'transparent';
+            restartBtn.style.color = '#0f0';
+            restartBtn.style.border = '1px solid #0f0';
+            restartBtn.style.padding = '10px 20px';
+            restartBtn.style.borderRadius = '5px';
+            restartBtn.style.cursor = 'pointer';
+            restartBtn.style.fontSize = 'clamp(0.9rem, 2.5vw, 1rem)';
+            restartBtn.style.transition = 'all 0.3s';
+            restartBtn.style.width = '100%';
+
+            restartBtn.addEventListener('mouseover', () => {
+                restartBtn.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+                restartBtn.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+            });
+
+            restartBtn.addEventListener('mouseout', () => {
+                restartBtn.style.backgroundColor = 'transparent';
+                restartBtn.style.boxShadow = 'none';
+            });
+
+            restartBtn.addEventListener('click', () => {
+                location.reload();
+            });
+
+            modal.appendChild(message);
+            modal.appendChild(restartBtn);
+            document.body.appendChild(modal);
+        }
+
+        // 游戏主循环
+        function gameLoop() {
+            currentY++;
+
+            if (collision()) {
+                currentY--;
+                merge();
+                clearLines();
+                newPiece();
+            }
+
+            draw();
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', e => {
+            if (!currentPiece) return;
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    currentX--;
+                    if (collision()) currentX++;
+                    break;
+                case 'ArrowRight':
+                    currentX++;
+                    if (collision()) currentX--;
+                    break;
+                case 'ArrowDown':
+                    currentY++;
+                    if (collision()) {
+                        currentY--;
+                        merge();
+                        clearLines();
+                        newPiece();
+                    }
+                    score++;
+                    scoreElement.textContent = score;
+                    break;
+                case 'ArrowUp':
+                    rotate();
+                    break;
+            }
+
+            draw();
         });
-        
-        // 生成设备ID
-        function generateDeviceId() {
-            currentUser.deviceId = localStorage.getItem('chat_device_id') || 'device_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('chat_device_id', currentUser.deviceId);
+
+        // 初始化游戏
+        function init() {
+            newPiece();
+            draw();
+            gameInterval = setInterval(gameLoop, 1000 / level);
         }
-        
-        // 检查登录状态
-        function checkLoginStatus() {
-            const savedNickname = localStorage.getItem('chat_nickname');
-            if (savedNickname) {
-                currentUser.nickname = savedNickname;
-                userNickname.textContent = currentUser.nickname;
-                loginModal.style.display = 'none';
-                loadMessages();
-            }
-        }
-        
-        // 设置事件监听
-        function setupEventListeners() {
-            // 登录
-            loginButton.addEventListener('click', () => {
-                if (passwordInput.value === ACCESS_PASSWORD) {
-                    loginModal.style.display = 'none';
-                    const savedNickname = localStorage.getItem('chat_nickname');
-                    if (savedNickname) {
-                        currentUser.nickname = savedNickname;
-                        userNickname.textContent = currentUser.nickname;
-                        loadMessages();
-                    } else {
-                        nicknameModal.style.display = 'flex';
-                    }
-                } else {
-                    alert('口令错误');
-                }
-            });
-            
-            // 昵称设置
-            confirmNicknameBtn.addEventListener('click', () => {
-                const nickname = nicknameInput.value.trim();
-                if (nickname) {
-                    currentUser.nickname = nickname;
-                    localStorage.setItem('chat_nickname', nickname);
-                    userNickname.textContent = nickname;
-                    nicknameModal.style.display = 'none';
-                    
-                    // 保存昵称到服务器
-                    fetch('set_nickname.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            device_id: currentUser.deviceId,
-                            nickname: nickname
-                        })
-                    });
-                    
-                    loadMessages();
-                } else {
-                    alert('请输入昵称');
-                }
-            });
-            
-            // 点击昵称修改
-            userNickname.addEventListener('click', () => {
-                nicknameInput.value = currentUser.nickname || '';
-                nicknameModal.style.display = 'flex';
-            });
-            
-            // 表情包按钮
-            emojiButton.addEventListener('click', () => {
-                emojiPanelVisible = !emojiPanelVisible;
-                emojiPanel.style.display = emojiPanelVisible ? 'block' : 'none';
-            });
-            
-            // 点击页面其他地方关闭表情包面板
-            document.addEventListener('click', (e) => {
-                if (!emojiButton.contains(e.target) && !emojiPanel.contains(e.target)) {
-                    emojiPanelVisible = false;
-                    emojiPanel.style.display = 'none';
-                }
-            });
-            
-            // 历史记录按钮
-            historyButton.addEventListener('click', () => {
-                historyModal.style.display = 'flex';
-                historyPage = 1;
-                loadHistoryMessages();
-            });
-            
-            // 关闭历史记录
-            closeHistory.addEventListener('click', () => {
-                historyModal.style.display = 'none';
-            });
-            
-            // 历史记录搜索
-            historySearchInput.addEventListener('input', (e) => {
-                historySearchQuery = e.target.value.trim();
-                historyPage = 1;
-                loadHistoryMessages();
-            });
-            
-            // 加载更多历史消息
-            loadMoreBtn.addEventListener('click', () => {
-                historyPage++;
-                loadHistoryMessages(true);
-            });
-            
-            // 发送消息
-            sendButton.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keydown', e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-        }
-        
-        // 渲染表情包面板
-        function renderEmojiPanel() {
-            emojis.forEach(emoji => {
-                const emojiItem = document.createElement('div');
-                emojiItem.className = 'emoji-item';
-                emojiItem.textContent = emoji;
-                emojiItem.addEventListener('click', () => {
-                    messageInput.value += emoji;
-                    messageInput.focus();
-                });
-                emojiGrid.appendChild(emojiItem);
-            });
-        }
-        
-        // 更新最后更新时间
-        function updateLastUpdateTime() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const period = hours >= 12 ? 'PM' : 'AM';
-            const formattedHours = hours % 12 || 12;
-            
-            lastUpdateTime.textContent = `${formattedHours}:${minutes}:${seconds} ${period}`;
-        }
-        
-        // 加载消息（使用增量拉取优化性能）
-        function loadMessages() {
-            // 优先使用增量拉取（只获取新消息）
-            let url = `get_messages.php?limit=${DEFAULT_MESSAGE_LIMIT}`;
-            if (lastMessageId > 0) {
-                url += `&last_id=${lastMessageId}`; // 只获取此ID之后的新消息
-            }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error('加载消息失败:', data.error);
-                        return;
-                    }
-                    
-                    if (data.length > 0) {
-                        // 更新最后一条消息ID
-                        lastMessageId = data[data.length - 1].id;
-                        
-                        // 增量添加新消息（非全量替换）
-                        const isFirstLoad = messages.length === 0;
-                        messages = isFirstLoad ? data : [...messages, ...data];
-                        renderMessages(messagesContainer, data, !isFirstLoad);
-                    }
-                    
-                    updateLastUpdateTime();
-                });
-        }
-        
-        // 加载历史消息
-        function loadHistoryMessages(append = false) {
-            let url = `get_messages.php?page=${historyPage}&limit=${DEFAULT_MESSAGE_LIMIT}`;
-            if (historySearchQuery) {
-                url += `&search=${encodeURIComponent(historySearchQuery)}`;
-            }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (!append) {
-                        historyMessagesContainer.innerHTML = '';
-                    }
-                    renderMessages(historyMessagesContainer, data);
-                    
-                    // 如果返回消息数量小于限制，隐藏加载更多按钮
-                    if (data.length < DEFAULT_MESSAGE_LIMIT) {
-                        loadMoreBtn.style.display = 'none';
-                    } else {
-                        loadMoreBtn.style.display = 'inline-block';
-                    }
-                });
-        }
-        
-        // 渲染消息
-        function renderMessages(container, messages, isIncremental = false) {
-            messages.forEach(msg => {
-                const isOwnMessage = msg.username === currentUser.nickname;
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${isOwnMessage ? 'right' : 'left'}`;
-                
-                messageDiv.innerHTML = `
-                    <div class="user-tag">${msg.username.charAt(0).toUpperCase()}</div>
-                    <div class="message-content">
-                        <div class="message-sender">${msg.username}</div>
-                        <div class="message-bubble">${formatMessage(msg.content)}</div>
-                        <div class="message-time">${msg.time}</div>
-                    </div>
-                `;
-                
-                container.appendChild(messageDiv);
-            });
-            
-            // 只有首次加载或增量加载新消息时才滚动到底部
-            if (!historyModal.style.display && (isIncremental || container.scrollHeight < container.clientHeight)) {
-                container.scrollTop = container.scrollHeight;
-            }
-        }
-        
-        // 格式化消息（处理@提及）
-        function formatMessage(content) {
-            return content.replace(/@([^\s]+)/g, '<span class="mention">@$1</span>');
-        }
-        
-        // 发送消息
-        function sendMessage() {
-            const content = messageInput.value.trim();
-            if (!content) return;
-            
-            fetch('send_message.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: currentUser.nickname,
-                    content: content
-                })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.status === 'success') {
-                    messageInput.value = '';
-                    messageInput.style.height = '40px';
-                    loadMessages(); // 发送成功后拉取新消息
-                } else {
-                    alert('发送失败: ' + (result.error || '未知错误'));
-                }
-            })
-            .catch(error => {
-                alert('发送失败，请检查网络连接或PHP环境是否部署正确');
-                console.error('发送失败:', error);
-            });
-        }
-        
-        // 设置定时刷新（每3秒），使用增量拉取减轻服务器负担
-        setInterval(loadMessages, 3000);
+
+        init();
     </script>
 </body>
 </html>
