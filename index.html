@@ -1,19 +1,792 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小集AI</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>网络口工作交流</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .status-bar {
+            height: 40px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #888;
+            position: relative;
+        }
+
+        .user-nickname {
+            position: absolute;
+            left: 15px;
+            color: #0084ff;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .status-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .history-button {
+            position: absolute;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .online-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #95ec69;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 40px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f7f9fa;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 80%;
+        }
+
+        .message.left {
+            align-self: flex-start;
+        }
+
+        .message.right {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+            margin-left: auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-tag {
+            width: 36px;
+            height: 36px;
+            background-color: #0084ff;
+            color: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .message.right .user-tag {
+            margin-right: 0;
+            margin-left: 10px;
+            background-color: #95ec69;
+        }
+
+        .message-content {
+            max-width: calc(100% - 46px);
+        }
+
+        .message-bubble {
+            background-color: white;
+            padding: 8px 15px;
+            border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .message.left .message-bubble {
+            border-top-left-radius: 4px;
+        }
+
+        .message.right .message-bubble {
+            background-color: #95ec69;
+            border-top-right-radius: 4px;
+        }
+
+        .message-bubble::before {
+            content: "";
+            position: absolute;
+            top: 10px;
+            width: 12px;
+            height: 12px;
+            background-color: inherit;
+            transform: rotate(45deg);
+        }
+
+        .message.left .message-bubble::before {
+            left: -6px;
+            box-shadow: -3px -3px 3px rgba(0,0,0,0.05);
+        }
+
+        .message.right .message-bubble::before {
+            right: -6px;
+            box-shadow: 3px 3px 3px rgba(0,0,0,0.05);
+        }
+
+        .message-sender {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .message.right .message-sender {
+            text-align: right;
+            color: #333;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .status-line {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            padding: 10px 0;
+        }
+
+        .input-area {
+            padding: 10px;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            position: relative;
+        }
+
+        #emojiButton {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: 20px;
+            outline: none;
+            resize: none;
+            height: 40px;
+            font-size: 14px;
+        }
+
+        #sendButton {
+            margin-left: 10px;
+            padding: 8px 20px;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .mention {
+            color: #0084ff;
+            font-weight: 500;
+        }
+
+        /* 表情包面板 */
+        .emoji-panel {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            width: calc(100% - 20px);
+            background-color: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 100;
+        }
+
+        .emoji-category {
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .emoji-item {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .emoji-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* 历史记录模态框 */
+        .history-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+        }
+
+        .history-header {
+            height: 50px;
+            background-color: #0084ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            justify-content: space-between;
+        }
+
+        .history-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .close-history {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .history-search {
+            padding: 10px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+        }
+
+        .history-search-input {
+            flex: 1;
+            padding: 8px 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .history-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .history-loading {
+            text-align: center;
+            padding: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .load-more {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .load-more-btn {
+            padding: 6px 15px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 8px;
+            width: 300px;
+            padding: 20px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 登录和昵称设置模态框 */
+        #loginModal, #nicknameModal {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div id="messages" class="messages"></div>
-        <div class="input-area">
-            <textarea id="user-input" placeholder="请输入您的消息..." rows="1" oninput="autoResize(this)"></textarea>
-            <button id="send-button">发送</button>
+    <!-- 登录模态框 -->
+    <div class="modal-overlay" id="loginModal" style="display: flex;">
+        <div class="modal">
+            <div class="modal-title">聊天室登录</div>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="请输入访问口令">
+            <button class="modal-btn" id="loginButton">进入聊天室</button>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <!-- 昵称设置模态框 -->
+    <div class="modal-overlay" id="nicknameModal">
+        <div class="modal">
+            <div class="modal-title">设置昵称</div>
+            <input type="text" class="modal-input" id="nicknameInput" placeholder="请输入您的昵称">
+            <button class="modal-btn" id="confirmNicknameBtn">确认</button>
+        </div>
+    </div>
+
+    <!-- 历史记录模态框 -->
+    <div class="history-modal" id="historyModal">
+        <div class="history-header">
+            <div class="history-title">聊天历史记录</div>
+            <button class="close-history" id="closeHistory">×</button>
+        </div>
+        <div class="history-search">
+            <input type="text" class="history-search-input" id="historySearchInput" placeholder="搜索历史消息...">
+        </div>
+        <div class="history-messages" id="historyMessagesContainer"></div>
+        <div class="load-more">
+            <button class="load-more-btn" id="loadMoreBtn">加载更多</button>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="user-nickname" id="userNickname">点击设置昵称</div>
+        <div class="status-info">
+            <span class="online-indicator"></span>在线 | 最后更新: <span id="lastUpdateTime">05:12:45 AM</span>
+        </div>
+        <button class="history-button" id="historyButton">📜</button>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="messagesContainer">
+            <!-- 消息会通过JS动态添加 -->
+        </div>
+        
+        <div class="input-area">
+            <button id="emojiButton">😊</button>
+            <textarea id="messageInput" placeholder="输入消息..."></textarea>
+            <button id="sendButton">发送</button>
+            
+            <!-- 表情包面板 -->
+            <div class="emoji-panel" id="emojiPanel">
+                <div class="emoji-category">常用表情</div>
+                <div class="emoji-grid" id="emojiGrid">
+                    <!-- 表情会通过JS动态添加 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 配置
+        const ACCESS_PASSWORD = "1234";
+        const DEFAULT_MESSAGE_LIMIT = 50;
+        let currentUser = { nickname: "", deviceId: "" };
+        let messages = [];
+        let lastMessageId = 0; // 记录最后一条消息ID，用于增量拉取
+        let emojiPanelVisible = false;
+        let historyPage = 1;
+        let historySearchQuery = "";
+        
+        // 常用表情列表
+        const emojis = [
+            "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣",
+            "☺️", "😊", "🙂", "🙃", "😉", "😌", "😍", "🥰",
+            "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜",
+            "🤪", "🤨", "🧐", "🤓", "😎", "🥸", "🤩", "🥳",
+            "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "😣",
+            "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠",
+            "😡", "🤬", "😳", "🥵", "🥶", "😱", "😨", "😰",
+            "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶",
+            "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮",
+            "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴"
+        ];
+        
+        // DOM元素
+        const loginModal = document.getElementById('loginModal');
+        const nicknameModal = document.getElementById('nicknameModal');
+        const historyModal = document.getElementById('historyModal');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginButton = document.getElementById('loginButton');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const confirmNicknameBtn = document.getElementById('confirmNicknameBtn');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const historyMessagesContainer = document.getElementById('historyMessagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const userNickname = document.getElementById('userNickname');
+        const lastUpdateTime = document.getElementById('lastUpdateTime');
+        const emojiButton = document.getElementById('emojiButton');
+        const emojiPanel = document.getElementById('emojiPanel');
+        const emojiGrid = document.getElementById('emojiGrid');
+        const historyButton = document.getElementById('historyButton');
+        const closeHistory = document.getElementById('closeHistory');
+        const historySearchInput = document.getElementById('historySearchInput');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            generateDeviceId();
+            checkLoginStatus();
+            setupEventListeners();
+            renderEmojiPanel();
+            updateLastUpdateTime();
+        });
+        
+        // 生成设备ID
+        function generateDeviceId() {
+            currentUser.deviceId = localStorage.getItem('chat_device_id') || 'device_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_device_id', currentUser.deviceId);
+        }
+        
+        // 检查登录状态
+        function checkLoginStatus() {
+            const savedNickname = localStorage.getItem('chat_nickname');
+            if (savedNickname) {
+                currentUser.nickname = savedNickname;
+                userNickname.textContent = currentUser.nickname;
+                loginModal.style.display = 'none';
+                loadMessages();
+            }
+        }
+        
+        // 设置事件监听
+        function setupEventListeners() {
+            // 登录
+            loginButton.addEventListener('click', () => {
+                if (passwordInput.value === ACCESS_PASSWORD) {
+                    loginModal.style.display = 'none';
+                    const savedNickname = localStorage.getItem('chat_nickname');
+                    if (savedNickname) {
+                        currentUser.nickname = savedNickname;
+                        userNickname.textContent = currentUser.nickname;
+                        loadMessages();
+                    } else {
+                        nicknameModal.style.display = 'flex';
+                    }
+                } else {
+                    alert('口令错误');
+                }
+            });
+            
+            // 昵称设置
+            confirmNicknameBtn.addEventListener('click', () => {
+                const nickname = nicknameInput.value.trim();
+                if (nickname) {
+                    currentUser.nickname = nickname;
+                    localStorage.setItem('chat_nickname', nickname);
+                    userNickname.textContent = nickname;
+                    nicknameModal.style.display = 'none';
+                    
+                    // 保存昵称到服务器
+                    fetch('set_nickname.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            device_id: currentUser.deviceId,
+                            nickname: nickname
+                        })
+                    });
+                    
+                    loadMessages();
+                } else {
+                    alert('请输入昵称');
+                }
+            });
+            
+            // 点击昵称修改
+            userNickname.addEventListener('click', () => {
+                nicknameInput.value = currentUser.nickname || '';
+                nicknameModal.style.display = 'flex';
+            });
+            
+            // 表情包按钮
+            emojiButton.addEventListener('click', () => {
+                emojiPanelVisible = !emojiPanelVisible;
+                emojiPanel.style.display = emojiPanelVisible ? 'block' : 'none';
+            });
+            
+            // 点击页面其他地方关闭表情包面板
+            document.addEventListener('click', (e) => {
+                if (!emojiButton.contains(e.target) && !emojiPanel.contains(e.target)) {
+                    emojiPanelVisible = false;
+                    emojiPanel.style.display = 'none';
+                }
+            });
+            
+            // 历史记录按钮
+            historyButton.addEventListener('click', () => {
+                historyModal.style.display = 'flex';
+                historyPage = 1;
+                loadHistoryMessages();
+            });
+            
+            // 关闭历史记录
+            closeHistory.addEventListener('click', () => {
+                historyModal.style.display = 'none';
+            });
+            
+            // 历史记录搜索
+            historySearchInput.addEventListener('input', (e) => {
+                historySearchQuery = e.target.value.trim();
+                historyPage = 1;
+                loadHistoryMessages();
+            });
+            
+            // 加载更多历史消息
+            loadMoreBtn.addEventListener('click', () => {
+                historyPage++;
+                loadHistoryMessages(true);
+            });
+            
+            // 发送消息
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+        
+        // 渲染表情包面板
+        function renderEmojiPanel() {
+            emojis.forEach(emoji => {
+                const emojiItem = document.createElement('div');
+                emojiItem.className = 'emoji-item';
+                emojiItem.textContent = emoji;
+                emojiItem.addEventListener('click', () => {
+                    messageInput.value += emoji;
+                    messageInput.focus();
+                });
+                emojiGrid.appendChild(emojiItem);
+            });
+        }
+        
+        // 更新最后更新时间
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12;
+            
+            lastUpdateTime.textContent = `${formattedHours}:${minutes}:${seconds} ${period}`;
+        }
+        
+        // 加载消息（使用增量拉取优化性能）
+        function loadMessages() {
+            // 优先使用增量拉取（只获取新消息）
+            let url = `get_messages.php?limit=${DEFAULT_MESSAGE_LIMIT}`;
+            if (lastMessageId > 0) {
+                url += `&last_id=${lastMessageId}`; // 只获取此ID之后的新消息
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('加载消息失败:', data.error);
+                        return;
+                    }
+                    
+                    if (data.length > 0) {
+                        // 更新最后一条消息ID
+                        lastMessageId = data[data.length - 1].id;
+                        
+                        // 增量添加新消息（非全量替换）
+                        const isFirstLoad = messages.length === 0;
+                        messages = isFirstLoad ? data : [...messages, ...data];
+                        renderMessages(messagesContainer, data, !isFirstLoad);
+                    }
+                    
+                    updateLastUpdateTime();
+                });
+        }
+        
+        // 加载历史消息
+        function loadHistoryMessages(append = false) {
+            let url = `get_messages.php?page=${historyPage}&limit=${DEFAULT_MESSAGE_LIMIT}`;
+            if (historySearchQuery) {
+                url += `&search=${encodeURIComponent(historySearchQuery)}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (!append) {
+                        historyMessagesContainer.innerHTML = '';
+                    }
+                    renderMessages(historyMessagesContainer, data);
+                    
+                    // 如果返回消息数量小于限制，隐藏加载更多按钮
+                    if (data.length < DEFAULT_MESSAGE_LIMIT) {
+                        loadMoreBtn.style.display = 'none';
+                    } else {
+                        loadMoreBtn.style.display = 'inline-block';
+                    }
+                });
+        }
+        
+        // 渲染消息
+        function renderMessages(container, messages, isIncremental = false) {
+            messages.forEach(msg => {
+                const isOwnMessage = msg.username === currentUser.nickname;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isOwnMessage ? 'right' : 'left'}`;
+                
+                messageDiv.innerHTML = `
+                    <div class="user-tag">${msg.username.charAt(0).toUpperCase()}</div>
+                    <div class="message-content">
+                        <div class="message-sender">${msg.username}</div>
+                        <div class="message-bubble">${formatMessage(msg.content)}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                `;
+                
+                container.appendChild(messageDiv);
+            });
+            
+            // 只有首次加载或增量加载新消息时才滚动到底部
+            if (!historyModal.style.display && (isIncremental || container.scrollHeight < container.clientHeight)) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+        
+        // 格式化消息（处理@提及）
+        function formatMessage(content) {
+            return content.replace(/@([^\s]+)/g, '<span class="mention">@$1</span>');
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content) return;
+            
+            fetch('send_message.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: currentUser.nickname,
+                    content: content
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    messageInput.value = '';
+                    messageInput.style.height = '40px';
+                    loadMessages(); // 发送成功后拉取新消息
+                } else {
+                    alert('发送失败: ' + (result.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                alert('发送失败，请检查网络连接或PHP环境是否部署正确');
+                console.error('发送失败:', error);
+            });
+        }
+        
+        // 设置定时刷新（每3秒），使用增量拉取减轻服务器负担
+        setInterval(loadMessages, 3000);
+    </script>
 </body>
 </html>
